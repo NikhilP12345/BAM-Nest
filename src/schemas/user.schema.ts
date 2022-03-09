@@ -10,8 +10,12 @@ export type UserDocument = User & Document
 })
 
 export class User{
+
     @Prop()
-    _id: string
+    first_name: string
+
+    @Prop()
+    last_name: string
 
     @Prop()
     profile_picture: string
@@ -24,6 +28,9 @@ export class User{
 
     @Prop()
     dateofbirth: Date
+
+    @Prop()
+    gender:string 
 
 }
 

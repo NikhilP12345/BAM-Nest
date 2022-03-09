@@ -4,17 +4,18 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { SocketModule } from './modules/socket/socket.module';
 import config from 'src/config/config'
-import { MongooseModule } from '@nestjs/mongoose';
 import { AuthenticationModule } from './modules/authentication/authentication.module';
+import { MongoModule } from './database/mongo.module';
 
 @Module({
   imports: [
+    MongoModule,
     ConfigModule.forRoot({
       load: [config],
       isGlobal: true
     }),
     AuthenticationModule,
-    MongooseModule
+    
   ],
   controllers: [AppController],
   providers: [AppService],
