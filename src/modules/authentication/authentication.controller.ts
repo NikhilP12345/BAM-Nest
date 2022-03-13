@@ -1,5 +1,6 @@
 import { Body, Controller, Post, UseGuards } from "@nestjs/common";
 import { LoginDTO } from "src/dto/authentication.dto";
+import { Public } from "../../../core/decorators/jwt.decorator";
 import { AuthService } from "./authentication.service";
 
 @Controller({

@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { IUserGroup, IUserPlace } from "src/interfaces/schema.interface";
 
 export type UserDocument = User & Document
 
@@ -20,10 +21,10 @@ export class User{
     @Prop()
     profile_picture: string
 
-    @Prop()
+    @Prop({unique: true})
     phone_number: number
 
-    @Prop()
+    @Prop({unique: true})
     email: string
 
     @Prop()
@@ -31,6 +32,13 @@ export class User{
 
     @Prop()
     gender:string 
+
+    @Prop()
+    groups: Array<IUserGroup>
+
+    @Prop()
+    places: Array<IUserPlace>
+
 
 }
 

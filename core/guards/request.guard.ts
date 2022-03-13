@@ -32,25 +32,10 @@ export class RequestGaurd implements CanActivate{
     if (isUndefined(headers)) {
       return false;
     }
-    const key: string = request.headers.key;
-    const token: string = request.headers.token;
-    const jwtToken: string = request.headers.Authorization;
+    const jwtToken: string = request.headers.jwt_token;
     if (!isUndefined(jwtToken)){
       return await this.jwt.validateJwt(jwtToken);
     }
-    else if (isUndefined(key) || isUndefined(token)) {
-      return false;
-    }
-
-    const validationResponse: Object = await this.validateTokens(key, token);
-    request.user = validationResponse;
-    if (isUndefined(validationResponse)) {
-      return false;
-    }
     return true;
   }
-
-  async validateTokens(key: string, token: string): Promise<Object> {
-    return null;
-}
 }

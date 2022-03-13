@@ -6,6 +6,7 @@ import { SocketModule } from './modules/socket/socket.module';
 import config from 'src/config/config'
 import { AuthenticationModule } from './modules/authentication/authentication.module';
 import { MongoModule } from './database/mongo.module';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { MongoModule } from './database/mongo.module';
       isGlobal: true
     }),
     AuthenticationModule,
-    
+    UserModule
   ],
   controllers: [AppController],
   providers: [AppService],
