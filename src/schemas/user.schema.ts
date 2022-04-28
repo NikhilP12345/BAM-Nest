@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { IUserGroup, IUserPlace } from "src/interfaces/schema.interface";
+import { GenderEnum } from "src/enums/user";
 
 export type UserDocument = User & Document
 
@@ -12,34 +12,35 @@ export type UserDocument = User & Document
 
 export class User{
 
-    @Prop()
+    @Prop({unique: true, required: true})
+    firebase_id: string
+
+    @Prop({required: true})
+    fcm_token: string
+
+    @Prop({required:true})
     first_name: string
 
     @Prop()
     last_name: string
 
-    @Prop()
+    @Prop({required: true})
     profile_picture: string
 
-    @Prop({unique: true})
+    @Prop({unique: true, required: true})
     phone_number: number
 
-    @Prop({unique: true})
+    @Prop({unique: true, required: true})
     email: string
 
-    @Prop()
+    @Prop({required: true})
     dateofbirth: Date
 
-    @Prop()
+    @Prop({required: true, enum: GenderEnum})
     gender:string 
 
-    @Prop()
-    groups: Array<IUserGroup>
-
-    @Prop()
-    places: Array<IUserPlace>
-
-
 }
+const UserSchema = SchemaFactory.createForClass(User);
+UserSchema.index({phone_number: 1}, {name: "phone_number_index", unique: true});
 
-export const UserSchema = SchemaFactory.createForClass(User);
+export {UserSchema}

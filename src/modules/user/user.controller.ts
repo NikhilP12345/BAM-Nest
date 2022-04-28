@@ -2,6 +2,7 @@ import { Body, Controller, Get, Post } from "@nestjs/common";
 import { GetUserDto, SaveGroupDto, UserDto } from "src/dto/user.dto";
 import { IUserGroup } from "src/interfaces/schema.interface";
 import { UserService } from "./user.service";
+import {validatorDto} from "core/errors/validate"
 
 @Controller({
     path: 'user'
@@ -11,29 +12,37 @@ export class UserController{
         private readonly userService: UserService
     ){}
 
+    @Post()
+    async saveUser(@Body() getUserDto: GetUserDto){
+        try{
+            await validatorDto(GetUserDto, getUserDto)
+        
+        }
+        catch(error){
+            throw error
+        }
+    }
+
     @Get()
-    async getUser(getUserDto: GetUserDto){
+    async getUser(@Body() getUserDto: GetUserDto){
         return this.userService.getUser(getUserDto)
     }
 
     @Post('savegroup')
     async saveGroupToUser(@Body() saveGroupDto: IUserGroup){
         let userDto: UserDto = {
-            first_name: 'niks',
-            last_name: 'parihar',
-            profile_picture: 'dsfcdf',
-            phone_number: 9660677180,
-            email: 'sdfsdef',
+            _id: "6230d6218b897f4f51c2b33b",
+            gender: "Male",
             dateofbirth: new Date(),
-            gender:'male'
+            email: "sdfsdef",
+            phone_number: 9660677180,
+            profile_picture: "dsfcdf",
+            last_name: "parihar",
+            first_name: "niks"
         }
         return await this.userService.saveGroupToUser(saveGroupDto, userDto)
     }
     
-    @Get('getgroup')
-    async getGroup(@Body() getUserDto: GetUserDto){
-        return this.userService.getGroup(getUserDto)
-    }
 
     
 }

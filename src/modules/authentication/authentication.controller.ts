@@ -1,5 +1,5 @@
 import { Body, Controller, Post, UseGuards } from "@nestjs/common";
-import { LoginDTO } from "src/dto/authentication.dto";
+import { LoginDTO, VerifyUserDto } from "src/dto/authentication.dto";
 import { Public } from "../../../core/decorators/jwt.decorator";
 import { AuthService } from "./authentication.service";
 
@@ -13,6 +13,11 @@ export class AuthController{
 
     @Post('/login')
     async loginApplication(@Body() loginDto: LoginDTO){ 
-        return this.authService.loginWithCredentials(loginDto);
+        return this.authService.saveUserCredentials(loginDto);
+    }
+
+    @Post('/verify-user')
+    async verifyUser(@Body() verifyUserDto: VerifyUserDto){
+        return await this.authService.verifyUser(verifyUserDto)
     }
 }

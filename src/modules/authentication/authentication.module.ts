@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { JwtModule } from "@nestjs/jwt";
 import { MongooseModule } from "@nestjs/mongoose";
 import { PassportModule } from "@nestjs/passport";
@@ -14,9 +15,13 @@ import { FirebaseService } from "./firebase.service";
             {name: User.name, schema: UserSchema}
         ]),
         PassportModule,
-        JwtModule.register({
-          secret: JWT.SECRET,
-          signOptions: {expiresIn: '60s'}
+        JwtModule.registerAsync({
+            imports: [ConfigService],
+            useFactory: async (configService: ConfigService) => ({
+                secret: configService.get('jwtSecretKey'),
+                signOptions: {expiresIn: configService.get('jwtExpiresIn')}
+            }),
+            inject: [ConfigService]
         }),
         FirebaseService
     ],  
