@@ -19,7 +19,7 @@ async function bootstrap() {
   }))
   app.useGlobalGuards(new RequestGaurd(reflector, new JwtAuth(jwtService,configService)));
   app.useGlobalInterceptors(new ResponseInterceptor())
-  await app.listen(3000);
+  await app.listen(process.env.PORT || 3000);
   console.log(`Listening on ${configService.get('port')} port`)
 }
 bootstrap();
