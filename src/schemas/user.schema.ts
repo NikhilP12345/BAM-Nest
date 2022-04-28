@@ -21,10 +21,10 @@ export class User{
     @Prop({required:true})
     first_name: string
 
-    @Prop()
+    @Prop({required:true})
     last_name: string
 
-    @Prop({required: true})
+    @Prop()
     profile_picture: string
 
     @Prop({unique: true, required: true})
