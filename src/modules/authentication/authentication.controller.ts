@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Post, UseGuards } from "@nestjs/common";
 import { LoginDTO, VerifyUserDto } from "src/dto/authentication.dto";
 import { Public } from "../../../core/decorators/jwt.decorator";
 import { AuthService } from "./authentication.service";
@@ -19,10 +19,8 @@ export class AuthController{
 
         }
         catch(error){
-            return{
-                message: error.message || `Error at login Application`,
-                statusCode: 400
-            }
+            const message = error.message ||  `Error at login User`
+            throw new BadRequestException(message)
         }
     }
 
@@ -33,10 +31,8 @@ export class AuthController{
             return response
         }
         catch(error){
-            return{
-                message: error.message || `Error at Verify User`,
-                statusCode: 400
-            }
+            const message = error.message ||  `Error at verify User`
+            throw new BadRequestException(message)
         }
     }
 }
