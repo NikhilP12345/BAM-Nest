@@ -13,11 +13,30 @@ export class AuthController{
 
     @Post('/login')
     async loginApplication(@Body() loginDto: LoginDTO){ 
-        return this.authService.saveUserCredentials(loginDto);
+        try{
+            const response = await this.authService.saveUserCredentials(loginDto);
+            return response;
+
+        }
+        catch(error){
+            return{
+                message: error.message || `Error at login Application`,
+                statusCode: 400
+            }
+        }
     }
 
     @Post('/verify-user')
     async verifyUser(@Body() verifyUserDto: VerifyUserDto){
-        return await this.authService.verifyUser(verifyUserDto)
+        try{
+            const response = await this.authService.verifyUser(verifyUserDto);
+            return response
+        }
+        catch(error){
+            return{
+                message: error.message || `Error at Verify User`,
+                statusCode: 400
+            }
+        }
     }
 }
