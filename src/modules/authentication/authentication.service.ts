@@ -17,15 +17,13 @@ export class AuthService{
         private readonly firebaseService: FirebaseService
     ){}
     
-    async validateUserCredentials(loginDto: LoginDTO){
+    async validateUserCredentials(jwtToken: string): Promise<UserI>{        
+        const decodedUser: UserDocI  = await this.jwtTokenService.decode(jwtToken) as UserDocI;
         const matchQuery = {
-            'phone_number': loginDto.phone_number
+            'phone_number': decodedUser.phone_number
         }
-        const user = await this.userModel.findOne(matchQuery)
-        if(user){
-
-        }
-        return null;
+        const user: UserI = await this.userModel.findOne(matchQuery);
+        return user;
     }
 
     async saveUserCredentials(loginDto: LoginDTO): Promise<any>{

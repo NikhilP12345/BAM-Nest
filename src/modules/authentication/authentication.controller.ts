@@ -11,6 +11,7 @@ export class AuthController{
         private readonly authService: AuthService
     ){}
 
+    @Public()
     @Post('/login')
     async loginApplication(@Body() loginDto: LoginDTO){ 
         try{
@@ -24,6 +25,7 @@ export class AuthController{
         }
     }
 
+    @Public()
     @Post('/verify-user')
     async verifyUser(@Body() verifyUserDto: VerifyUserDto){
         try{

@@ -7,6 +7,7 @@ import config from 'src/config/config'
 import { AuthenticationModule } from './modules/authentication/authentication.module';
 import { MongoModule } from './database/mongo.module';
 import { UserModule } from './modules/user/user.module';
+import { LocationModule } from './modules/location/location.module';
 
 @Module({
   imports: [
@@ -16,7 +17,8 @@ import { UserModule } from './modules/user/user.module';
       isGlobal: true
     }),
     AuthenticationModule,
-    UserModule
+    UserModule,
+    LocationModule
   ],
   controllers: [AppController],
   providers: [AppService],

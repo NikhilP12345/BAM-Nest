@@ -6,6 +6,7 @@ import { JwtAuth } from 'core/helpers/jwt_helper';
 import { AppModule } from './app.module';
 import ResponseInterceptor from '../core/interceptors/response'
 import { ValidationPipe } from '@nestjs/common';
+import { AuthService } from './modules/authentication/authentication.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,11 +14,12 @@ async function bootstrap() {
   const reflector = app.get(Reflector);
   const jwtService = app.get(JwtService);
   const configService = app.get(ConfigService);
+  const authService = app.get(AuthService)
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     forbidNonWhitelisted: true
   }))
-  app.useGlobalGuards(new RequestGaurd(reflector, new JwtAuth(jwtService,configService)));
+  app.useGlobalGuards(new RequestGaurd(reflector, new JwtAuth(jwtService,configService), authService));
   app.useGlobalInterceptors(new ResponseInterceptor())
   await app.listen(process.env.PORT || 3000);
   console.log(`Listening on ${configService.get('port')} port`)
