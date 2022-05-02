@@ -1,4 +1,4 @@
-import { IsEmail, IsInt, IsNotEmpty, IsNumber, isNumber, IsString, Max, Min } from "class-validator";
+import { IsEmail, IsInt, IsNotEmpty, IsNumber, isNumber, IsString, Length, Max, Min } from "class-validator";
 
 export class LoginDTO{
 
@@ -13,10 +13,10 @@ export class LoginDTO{
     @IsEmail()
     email:string
 
-    @IsInt()
+    @IsString()
     @IsNotEmpty()
-    @Min(10)
-    phone_number: number
+    @Length(6)
+    phone_number: string
 
     @IsNotEmpty()
     @IsString()
@@ -47,8 +47,8 @@ export class VerifyUserDto{
     @IsNotEmpty()
     firebaseUserId: string
 
-    @IsInt()
+    @IsString()
     @IsNotEmpty()
-    @Min(10)
-    phone_number: number
+    @Length(10)
+    phone_number: string
 }

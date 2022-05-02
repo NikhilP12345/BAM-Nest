@@ -1,12 +1,11 @@
-import { IsInt, IsNotEmpty, IsString, MAX, Max, Min } from "class-validator";
+import { IsInt, IsNotEmpty, IsString, Length, MAX, Max, Min } from "class-validator";
 import { Schema } from "mongoose";
 
 export class GetUserDto{
-    @IsInt()
+    @IsString()
     @IsNotEmpty()
-    @Min(10)
-    @Max(10)
-    phoneNumber: number;
+    @Length(6)
+    phoneNumber: string;
 }
 
 export class SaveGroupDto{

@@ -28,7 +28,7 @@ export class User{
     profile_picture: string
 
     @Prop({unique: true, required: true})
-    phone_number: number
+    phone_number: string
 
     @Prop({unique: true, required: true})
     email: string

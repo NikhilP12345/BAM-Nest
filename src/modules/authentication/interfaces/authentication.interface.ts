@@ -7,7 +7,7 @@ export interface UserDocI{
     gender: string,
     dateofbirth: number | string | Date,
     email:string,
-    phone_number: number,
+    phone_number: string,
     profile_picture: string,
     last_name: string,
     first_name: string,
