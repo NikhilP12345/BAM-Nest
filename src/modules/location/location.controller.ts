@@ -12,7 +12,7 @@ export class LocationController{
     ){}
 
 
-    @Get('update-user')
+    @Post('update-user')
     async updateUserLocation(@User() user, @Body() locationDto: LocationDto){
         try{
             await await this.locationService.updateUserLocationById(user,locationDto)            

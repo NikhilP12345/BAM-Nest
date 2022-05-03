@@ -17,10 +17,10 @@ export class UserLocation{
     user_id: User
 
     @Prop({unique: true, required: true})
-    latitude: string
+    latitude: number
 
     @Prop({unique: true, required: true})
-    longitude: string
+    longitude: number
 
 }
 const UserLocationSchema = SchemaFactory.createForClass(UserLocation);
