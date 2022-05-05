@@ -1,11 +1,12 @@
-import { Body, Controller, Get, Post } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Delete, Get, Post } from "@nestjs/common";
 import { GetUserDto, SaveGroupDto, UserDto } from "src/dto/user.dto";
 import { IUserGroup } from "src/interfaces/schema.interface";
 import { UserService } from "./user.service";
 import {validatorDto} from "core/errors/validate"
+import { User } from "core/decorators/user.decorator";
 
 @Controller({
-    path: 'user'
+    path: '/bam/user'
 })
 export class UserController{
     constructor(
@@ -43,6 +44,17 @@ export class UserController{
         return await this.userService.saveGroupToUser(saveGroupDto, userDto)
     }
     
+    @Delete('delete-user')
+    async deleteUser(@User() user){
+        try{
+            await this.userService.deleteUserByToken(user)         
+            return {message: 'successfully deleted'}
+        }
+        catch(error){
+            const message = error.message ||  `Error at delete user`
+            throw new BadRequestException(message)
+        }
+    }
 
     
 }
