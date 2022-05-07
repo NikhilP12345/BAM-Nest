@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import admin from "src/config/firebase";
 import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { LoginDTO } from "src/dto/authentication.dto";
+import { MulticastMessage } from "firebase-admin/lib/messaging/messaging-api";
 
 
 @Injectable()
@@ -29,18 +30,30 @@ export class FirebaseService{
         }
     }
 
-    // async signInPhoneNumber(loginDto: LoginDTO){
-    //     const auth = getAuth();
-    //     const b = new RecaptchaVerifier('sign-in-button', {
-    //     'size': 'invisible',
-    //     'callback': (response) => {
-    //         // reCAPTCHA solved, allow signInWithPhoneNumber.
-    //         onSignInSubmit();
-    //     }
-    //     }, auth);
-    //     const a = await signInWithPhoneNumber(auth, loginDto.phone_number.toString(), )
+    async notifyUserThroughNotification(fcmTokens: Array<string>, userI:Record<string, string | number>){
+        try{
+            const message: MulticastMessage = {
+                notification: {
+                    title: 'Help Me!!!',
+                    body: `${userI.name} is stuck and is looking for helpers.\nCan You help him?`
+                },
+                data: {
+                    "click_action": "FLUTTER_NOTIFICATION_CLICK",
+                    "sound": "default",
+                    'type': 'help',
+                    userInfo: JSON.stringify(userI)
+                },
+                tokens: fcmTokens,
+            };
 
-    // }
+            await admin.messaging().sendMulticast(message);
+            
+        }
+        catch(error){
+            throw error;
+        }
+
+    }
 
 
 

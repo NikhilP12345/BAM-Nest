@@ -5,7 +5,7 @@ import { GetUserDto, SaveGroupDto, UserDto } from "src/dto/user.dto";
 import { IUserGroup } from "src/interfaces/schema.interface";
 import { User, UserDocument } from "src/schemas/user.schema";
 import { UserLocation, UserLocationDocument } from "src/schemas/userLocation.schema";
-import { UserDocI } from "../authentication/interfaces/authentication.interface";
+import { UserDocI, UserI } from "../authentication/interfaces/authentication.interface";
 
 
 @Injectable()
@@ -56,6 +56,16 @@ export class UserService {
             })
             return;
         } catch (error) {
+            throw error;
+        }
+    }
+
+    async getListOfUsersInRadius(latLong: any): Promise<UserI[]>{
+        try{
+            const users: UserI[] = await this.userModal.find();
+            return users;
+        }
+        catch(error){
             throw error;
         }
     }

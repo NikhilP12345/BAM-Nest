@@ -28,25 +28,12 @@ export class userDto{
 
 export class UpdateLocationDto{
     location: LocationDto;
-
-    @IsString()
-    uid: string
-
-    @IsString()
-    roomId: string
-
-    @IsString()
-    type: string
 }
 
 export class CreateRoomDto{
     location: LocationDto;
 
-    @IsString()
-    uid: string
-
-    @IsString()
-    type: string = "victim"
+    level: number
 }
 
 export class UpdateCameraPositionDto{

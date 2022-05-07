@@ -14,6 +14,7 @@ import { UserService } from "./user.service";
         schema: UserLocationSchema
     }])],
     providers: [UserService],
-    controllers: [UserController]
+    controllers: [UserController],
+    exports: [MongooseModule, UserService]
 })
 export class UserModule{}

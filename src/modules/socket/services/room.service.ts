@@ -1,55 +1,96 @@
 import { CACHE_MANAGER, Inject, Injectable } from "@nestjs/common";
-import {Cache} from 'cache-manager'
-import { CreateRoomDto, IsSafeDto, UpdateLocationDto } from "../dto/socket.dto";
+import Cache from 'cache-manager';
+import { CreateRoomDto, IsSafeDto, LocationDto, UpdateLocationDto } from "../dto/socket.dto";
 import { ICacheData } from "../interfaces/cache.interface";
 import * as Redis from 'ioredis'
+import { AuthService } from "src/modules/authentication/authentication.service";
+import { UserI } from "src/modules/authentication/interfaces/authentication.interface";
+import { uuid } from "uuidv4";
+import { InjectModel } from "@nestjs/mongoose";
+import { UserStatus, UserStatusDocument, UserStatusSchema } from "src/schemas/userStatus.schema";
+import { Condition, Model, Types } from "mongoose";
+import { UserStatusEnum } from "src/enums/user";
+import { Room, RoomDocument } from "src/schemas/room.schema";
+import { ObjectId } from "bson";
+import { LocationService } from "src/modules/location/location.service";
+import { UserService } from "src/modules/user/user.service";
+import { FirebaseService } from "src/modules/authentication/firebase.service";
 
 @Injectable()
 export class RoomService{
-    private redis: any;
     constructor(
-        // @Inject(CACHE_MANAGER) private readonly cacheManager: Cache
+        @Inject(CACHE_MANAGER) private readonly redis: Cache,
+        @InjectModel(UserStatus.name) private userStatusModel: Model<UserStatusDocument>,
+        @InjectModel(Room.name) private roomModel: Model<RoomDocument>,
+        private readonly locationService: LocationService,
+        private readonly userService: UserService,
+        private readonly firebaseService: FirebaseService
     )
-    {
-        this.redis = new Redis({
-            host: 'redis-10411.c264.ap-south-1-1.ec2.cloud.redislabs.com',
-            port: 10411,
-            password: 'socketManagment' 
-        });
-    }
+    {}
 
-    async createRoomToCache(socketId: string, roomId: string, createRoomDto: CreateRoomDto): Promise<any>{
+    async createRoomForVictim(user: UserI, createRoomDto: CreateRoomDto): Promise<number>{
         try{
-            const getCacheUser: ICacheData	= await this.getDataFromCache(createRoomDto.uid)
-            if(getCacheUser){
-                throw new Error("User already Victim")
-            }
-            const savedCache: ICacheData = {
-                socketId,
-                roomId,
-                location: createRoomDto.location,
-                type: createRoomDto.type
-            }
-            await this.setDataToCache(createRoomDto.uid, savedCache);
-            // inform nearby users
+            const roomId: string = uuid();
+            const victimId: ObjectId = user._id as unknown as ObjectId
+            await this.createNewRoomInDb(victimId, roomId, createRoomDto);
+            await this.locationService.updateUserLocationById(user, createRoomDto.location);
+            const radiusAroundLevel: any = await this.locationService.getListOfNearbyUsersByLocation(createRoomDto, user);
+            const possibleHelpersList: Array<UserI> = await this.userService.getListOfUsersInRadius(radiusAroundLevel);
+            const listFcmTokens: string[] = [];
+            possibleHelpersList.forEach(user => {
+                listFcmTokens.push(user.fcm_token);
+            })
+            await this.firebaseService.notifyUserThroughNotification(listFcmTokens, {
+                name: user.first_name + " " + user.last_name,
+                roomId: roomId,
+                latitude: createRoomDto.location.latitude,
+                longitude: createRoomDto.location.longitude
+            });          
+            await this.setDataToCache(user._id.toString(), createRoomDto.location);
+            return possibleHelpersList.length;
         }
         catch(error){
             throw error
         }
     }
 
-
-    async updateLocationToCache(socketId: string, updateLocationDto: UpdateLocationDto){
+    async createNewRoomInDb(victimId: ObjectId,  roomId: string, createRoomDto: CreateRoomDto): Promise<void>{
         try{
-            const getCacheUser: ICacheData = await this.getDataFromCache(updateLocationDto.uid);
+            
+            const currentUser: UserStatus = await this.userStatusModel.findOne({user_id:  victimId as Condition<UserI>});
+
+            if(!currentUser || (currentUser && currentUser.status != UserStatusEnum.USER)){
+                throw new Error(`Current User Status is not USER, its already - ${currentUser.status}`)
+            }
+            await this.userStatusModel.findOneAndUpdate({
+                    user_id:  victimId as Condition<UserI> 
+                },
+                {status: UserStatusEnum.VICTIM}
+            )
+    
+            const newRoom = new this.roomModel({
+                victim_id: victimId,
+                helper_ids: [],
+                room_id: roomId
+            })
+            const savedRoom: Room = await newRoom.save();
+
+
+        }
+        catch(error){
+            throw error
+        }
+    }
+
+    async updateLocationToCache(user: UserI, updateLocationDto: UpdateLocationDto){
+        try{
+            const userId: string = user._id.toString()
+            let getCacheUser: LocationDto = await this.getDataFromCache(userId);
             if(!getCacheUser){
                 throw new Error("User not available in cache") 
             }
-            if(getCacheUser.roomId !== updateLocationDto.roomId || getCacheUser.socketId !== socketId){
-                throw new Error("User already connected in a different roomId")
-            }
-            getCacheUser.location = updateLocationDto.location
-            await this.setDataToCache(updateLocationDto.uid, getCacheUser);
+            getCacheUser = updateLocationDto.location
+            await this.setDataToCache(userId, getCacheUser);
         }
         catch(error){
             throw error
@@ -72,7 +113,7 @@ export class RoomService{
     }
 
     async getDataFromCache(key: string): Promise<any>{
-        try{
+        try{            
             const value: string = await this.redis.get(key);
             return JSON.parse(value);
         }
@@ -83,9 +124,11 @@ export class RoomService{
 
     async setDataToCache(key: string, value: any): Promise<void>{
         try{
-            await this.redis.set(key, JSON.stringify(value));
+            await this.redis.set(key, JSON.stringify(value), {ttl: 0});
         }
         catch(error){
+            console.log(error);
+            
             throw new Error('Cant set value to cache')
         }
     }

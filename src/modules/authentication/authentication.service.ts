@@ -2,9 +2,12 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { InjectModel } from "@nestjs/mongoose";
+import { Socket } from "dgram";
 import { Model } from "mongoose";
 import { LoginDTO, VerifyUserDto } from "src/dto/authentication.dto";
+import { UserStatusEnum } from "src/enums/user";
 import { User, UserDocument } from "src/schemas/user.schema";
+import { UserStatus, UserStatusDocument } from "src/schemas/userStatus.schema";
 import { FirebaseService } from "./firebase.service";
 import { UserDocI, UserI } from "./interfaces/authentication.interface";
 
@@ -12,18 +15,38 @@ import { UserDocI, UserI } from "./interfaces/authentication.interface";
 export class AuthService{
     constructor(
         @InjectModel(User.name) private userModel: Model<UserDocument>,
+        @InjectModel(UserStatus.name) private userStatusModel: Model<UserStatusDocument>,
         private jwtTokenService: JwtService,
         private readonly configService : ConfigService,
         private readonly firebaseService: FirebaseService
     ){}
     
-    async validateUserCredentials(jwtToken: string): Promise<UserI>{        
-        const decodedUser: UserDocI  = await this.jwtTokenService.decode(jwtToken) as UserDocI;
-        const matchQuery = {
-            'phone_number': decodedUser.phone_number
+    async authenticateSocket(client: Socket): Promise<UserI>{
+        try{
+            if(client["handshake"] && client["handshake"]["headers"] &&  client["handshake"]["headers"]["by_pass"]){
+                const token: string = client["handshake"]["headers"]["by_pass"];
+                const user: UserI = await this.validateUserCredentials(token);
+                return user;
+            }
+            return null;
         }
-        const user: UserI = await this.userModel.findOne(matchQuery);
-        return user;
+        catch(error){
+            throw error;
+        }
+    }
+
+    async validateUserCredentials(jwtToken: string): Promise<UserI>{
+        try{
+            const decodedUser: UserDocI  = await this.jwtTokenService.decode(jwtToken) as UserDocI;
+            const matchQuery = {
+                'phone_number': decodedUser.phone_number
+            }
+            const user: UserI = await this.userModel.findOne(matchQuery);
+            return user;
+        }        
+        catch(error){
+            throw error;
+        }
     }
 
     async saveUserCredentials(loginDto: LoginDTO): Promise<any>{
@@ -50,6 +73,13 @@ export class AuthService{
                 firebase_id: loginDto.firebaseUserId
             });
             const savedUserDoc: UserI = await userDoc.save();
+
+            const userStatusDoc = new this.userStatusModel({
+                status: UserStatusEnum.USER,
+                user_id: savedUserDoc._id
+            })
+            const savedUserStatusDoc:UserStatus  = await userStatusDoc.save();
+
             const userPayload: UserDocI = {
                 ...loginDto,
                 _id: savedUserDoc._id

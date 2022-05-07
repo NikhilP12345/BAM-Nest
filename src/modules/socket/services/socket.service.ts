@@ -1,39 +1,62 @@
-import { CACHE_MANAGER, Inject } from "@nestjs/common";
-import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
+import { CACHE_MANAGER, ForbiddenException, Inject } from "@nestjs/common";
+import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { SOCKETEVENTLISTENER } from "src/constants";
 import { CreateRoomDto, IncreaseRangeDto, IsSafeDto, UpdateCameraPositionDto, UpdateLocationDto } from "../dto/socket.dto";
 import { RoomService } from "./room.service";
 import { uuid } from "uuidv4";
+import { Socket } from "dgram";
+import { AuthService } from "src/modules/authentication/authentication.service";
+import { UserDocI, UserI } from "src/modules/authentication/interfaces/authentication.interface";
 
-@WebSocketGateway()
+
+@WebSocketGateway({allowRequest: async (req, fn) => {
+  const token: string = req.headers["by_pass"];
+  if(!token){
+    fn(`Wrong headers`, false)
+  }
+  fn(null, true);
+}})
+
 export class SocketGateway {
+  @WebSocketServer() server;
+
   constructor(
-    private readonly roomService: RoomService
+    private readonly roomService: RoomService,
+    private readonly authService: AuthService
   )
   {}
-  @WebSocketServer()
-  server;
-
 
     @SubscribeMessage(SOCKETEVENTLISTENER.CREATE_ROOM)
-    async createRoom(client: any, createRoomDto: CreateRoomDto): Promise<void> {
+    async createRoom( @ConnectedSocket() client: Socket, @MessageBody() createRoomDto: CreateRoomDto): Promise<any> {
       try{
-        await this.roomService.createRoomToCache(client.id, uuid(), createRoomDto)
+        const user: UserI = await this.authService.authenticateSocket(client);
+        if(!user){
+          throw new ForbiddenException(`Wrong headers pass`);
+        }
+        const userAvailableNearby: number = await this.roomService.createRoomForVictim(user, createRoomDto);
+        client.emit(SOCKETEVENTLISTENER.CREATE_ROOM, `Total Available Users - ${userAvailableNearby}`);
+
       }
       catch(error){
-        throw error
+        client.emit(SOCKETEVENTLISTENER.CREATE_ROOM, error.message || `Wrong JWT Token passed`);
       }
 
     }
 
 
     @SubscribeMessage(SOCKETEVENTLISTENER.UPDATE_LOCATION)
-    async updateUserLocation(client: any, updateLocationDto: UpdateLocationDto): Promise<void> {
+    async updateUserLocation(@ConnectedSocket() client: Socket, @MessageBody() updateLocationDto: UpdateLocationDto): Promise<void> {
       try{
-        await this.roomService.updateLocationToCache(client.id, updateLocationDto)
+        const user: UserI = await this.authService.authenticateSocket(client);
+        if(!user){
+          throw new ForbiddenException(`Wrong headers pass`);
+        }
+        await this.roomService.updateLocationToCache(user, updateLocationDto);
+        client.emit(SOCKETEVENTLISTENER.UPDATE_LOCATION, `Location Updated successfully`);
+
       }
       catch(error){
-        throw error
+        client.emit(SOCKETEVENTLISTENER.UPDATE_LOCATION, error.message || `Wrong JWT Token passed`);
       }
     }
 

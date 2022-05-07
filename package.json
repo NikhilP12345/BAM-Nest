@@ -46,6 +46,7 @@
     "firebase-admin": "^10.0.2",
     "ioredis": "^4.28.1",
     "mongoose": "6.0.8",
+    "ngeohash": "^0.6.3",
     "opentelemetry-instrumentation-mongoose": "^0.26.1",
     "passport": "^0.5.2",
     "passport-jwt": "^4.0.0",

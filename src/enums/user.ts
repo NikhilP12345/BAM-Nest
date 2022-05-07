@@ -3,3 +3,9 @@ export enum GenderEnum{
     'Female',
     'Others'
 }
+
+export enum UserStatusEnum{
+    "USER" = "USER",
+    "HELPER" = "HELPER",
+    "VICTIM" = "VICTIM"
+}

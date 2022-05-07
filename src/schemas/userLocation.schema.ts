@@ -13,7 +13,7 @@ export type UserLocationDocument = UserLocation & Document
 
 export class UserLocation{
 
-    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
+    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' , required: true,  unique: true})
     user_id: User
 
     @Prop({unique: true, required: true})
