@@ -1,7 +1,7 @@
 import { CACHE_MANAGER, ForbiddenException, Inject } from "@nestjs/common";
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { SOCKETEVENTLISTENER } from "src/constants";
-import { CreateRoomDto, IncreaseRangeDto, IsSafeDto, UpdateCameraPositionDto, UpdateLocationDto } from "../dto/socket.dto";
+import { CreateRoomDto, IncreaseRangeDto, IsSafeDto, LocationDto, UpdateCameraPositionDto, UpdateLocationDto, VictimDto } from "../dto/socket.dto";
 import { RoomService } from "./room.service";
 import { uuid } from "uuidv4";
 import { Socket } from "dgram";
@@ -61,9 +61,20 @@ export class SocketGateway {
     }
 
 
-    @SubscribeMessage(SOCKETEVENTLISTENER.UPDATE_CAMERA_POSITION)
-    updateCameraPosition(@MessageBody() message: UpdateCameraPositionDto): void {
+    @SubscribeMessage(SOCKETEVENTLISTENER.VICTIM_LOCATION)
+    async getVictimLocation(@ConnectedSocket() client: Socket, @MessageBody() victimDto: VictimDto): Promise<void> {
+      try{
+        const user: UserI = await this.authService.authenticateSocket(client);
+        if(!user){
+          throw new ForbiddenException(`Wrong headers pass`);
+        }
+        const victimLocation: LocationDto = await this.roomService.getVictimLocation(user, victimDto);
+        client.emit(SOCKETEVENTLISTENER.VICTIM_LOCATION, victimLocation);
 
+      }
+      catch(error){
+        client.emit(SOCKETEVENTLISTENER.VICTIM_LOCATION, error.message || `Wrong JWT Token passed`);
+      }
     }
 
     @SubscribeMessage(SOCKETEVENTLISTENER.IS_SAFE)

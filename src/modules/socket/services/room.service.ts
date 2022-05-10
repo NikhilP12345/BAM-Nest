@@ -1,6 +1,6 @@
 import { CACHE_MANAGER, Inject, Injectable } from "@nestjs/common";
 import Cache from 'cache-manager';
-import { CreateRoomDto, IsSafeDto, LocationDto, UpdateLocationDto } from "../dto/socket.dto";
+import { CreateRoomDto, IsSafeDto, LocationDto, UpdateLocationDto, VictimDto } from "../dto/socket.dto";
 import { ICacheData } from "../interfaces/cache.interface";
 import * as Redis from 'ioredis'
 import { AuthService } from "src/modules/authentication/authentication.service";
@@ -106,6 +106,20 @@ export class RoomService{
             //     throw new Error("Victim is not present")
             // }
 
+        }
+        catch(error){
+            throw error
+        }
+    }
+
+    async getVictimLocation(user: UserI, victimDto: VictimDto): Promise<LocationDto>{
+        try{
+            const victimId: string = victimDto._id.toString()
+            let getCacheUser: LocationDto = await this.getDataFromCache(victimId);
+            if(!getCacheUser){
+                throw new Error("Victim Id not available in cache") 
+            }
+            return getCacheUser;
         }
         catch(error){
             throw error

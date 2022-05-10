@@ -1,6 +1,7 @@
 import { Transform, Type } from "class-transformer";
 import { IsNumber, IsString } from "class-validator";
 import exp from "constants";
+import { ObjectId } from "mongoose";
 import { isEmpty } from "rxjs";
 
 export class LocationDto{
@@ -69,3 +70,6 @@ export class IncreaseRangeDto{
     type: string
 }
 
+export class VictimDto{
+    _id: string | ObjectId
+}
