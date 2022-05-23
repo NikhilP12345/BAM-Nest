@@ -140,10 +140,31 @@ export class RoomService{
         try{
             await this.redis.set(key, JSON.stringify(value), {ttl: 0});
         }
-        catch(error){
-            console.log(error);
-            
+        catch(error){            
             throw new Error('Cant set value to cache')
+        }
+    }
+
+    async deleteFromCache(key: string): Promise<void>{
+        try{           
+            await this.redis.del(key);
+        }
+        catch(error){            
+            throw new Error(`Cant delete value from cache`)
+        }
+    }
+
+    async disconnectVictim(user: UserI): Promise<any> {
+        try{
+            await this.userStatusModel.findOneAndUpdate({
+                user_id: user._id as Condition<UserI> 
+            },{
+                status: UserStatusEnum.USER
+            });
+            await this.deleteFromCache(user._id.toString())
+        }
+        catch(error){
+            throw error;
         }
     }
 }

@@ -9,5 +9,5 @@ export default() => ({
         password: 'xcrff84sElzZHWAJxwnK3Jh87SxNRakZ'
     },
     jwtSecretKey: 'secretKey',
-    jwtExpiresIn: 24*60*60
+    jwtExpiresIn: 7*24*60*60
 })

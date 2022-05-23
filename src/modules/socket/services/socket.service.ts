@@ -60,7 +60,38 @@ export class SocketGateway {
       }
     }
 
+    // @SubscribeMessage(SOCKETEVENTLISTENER.JOIN_ROOM)
+    // async userJoinRoom(@ConnectedSocket() client: Socket, @MessageBody() updateLocationDto: UpdateLocationDto): Promise<void> {
+    //   try{
+    //     const user: UserI = await this.authService.authenticateSocket(client);
+    //     if(!user){
+    //       throw new ForbiddenException(`Wrong headers pass`);
+    //     }
+    //     await this.roomService.updateLocationToCache(user, updateLocationDto);
+    //     client.emit(SOCKETEVENTLISTENER.UPDATE_LOCATION, `Location Updated successfully`);
 
+    //   }
+    //   catch(error){
+    //     client.emit(SOCKETEVENTLISTENER.UPDATE_LOCATION, error.message || `Wrong JWT Token passed`);
+    //   }
+    // }
+
+    @SubscribeMessage(SOCKETEVENTLISTENER.DISCONNECT_BY_VICTIM)
+    async disconnectSocketByVictim(@ConnectedSocket() client: Socket): Promise<void> {
+      try{
+        const user: UserI = await this.authService.authenticateSocket(client);
+        if(!user){
+          throw new ForbiddenException(`Wrong headers pass`);
+        }
+        await this.roomService.disconnectVictim(user);
+        client.emit(SOCKETEVENTLISTENER.DISCONNECT_BY_VICTIM, "ROOM CLOSED");
+
+      }
+      catch(error){
+        client.emit(SOCKETEVENTLISTENER.DISCONNECT_BY_VICTIM, error.message || `Wrong JWT Token passed`);
+      }
+    }
+    
     @SubscribeMessage(SOCKETEVENTLISTENER.VICTIM_LOCATION)
     async getVictimLocation(@ConnectedSocket() client: Socket, @MessageBody() victimDto: VictimDto): Promise<void> {
       try{
@@ -90,4 +121,8 @@ export class SocketGateway {
     @SubscribeMessage(SOCKETEVENTLISTENER.INCREASE_RANGE)
     increaseRange(@MessageBody() message: IncreaseRangeDto): void {
     }
+
+
+
+
 }

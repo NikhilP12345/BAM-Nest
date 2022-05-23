@@ -73,3 +73,10 @@ export class IncreaseRangeDto{
 export class VictimDto{
     _id: string | ObjectId
 }
+
+export class JoinRoomDto{
+    @IsString()
+    roomId: string
+
+    
+}
